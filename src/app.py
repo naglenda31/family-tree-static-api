@@ -26,17 +26,83 @@ def sitemap():
     return generate_sitemap(app)
 
 @app.route('/members', methods=['GET'])
-def handle_hello():
-
+def get_all_members():
+    status = 200
     # this is how you can use the Family datastructure by calling its methods
-    members = jackson_family.get_all_members()
-    response_body = {
-        "hello": "world",
-        "family": members
-    }
-
+    try:
+        members = jackson_family.get_all_members()
+        response_body = members
+    except:
+        response_body = {
+            "msg": "Problem with the server, could not fulfill request"
+        }
+        status = 500
 
     return jsonify(response_body), 200
+
+@app.route('/members/<int:id>', methods=['GET'])
+def get_member(id):
+    status = 200
+    try:
+        member = jackson_family.get_member(id)
+        response_body = member
+    except:
+        response_body = {
+            "msg": "Problem with the server, could not fulfill request"
+        }
+        status = 500
+
+    return jsonify(response_body), 200
+
+
+@app.route('/members', methods=['POST'])
+def add_member():
+    status = 200 
+    body = request.json
+    if body is None:
+        response_body = {
+            "msg": "Body was missing from your request"
+        }
+        status = 400
+    else:
+        try:
+            member = jackson_family.add_member(body)
+            response_body = member
+        except:
+            response_body = {
+            "msg": "Problem with the server, could not fulfill request"
+            }
+            status = 500
+
+    return jsonify(response_body), status
+
+@app.route('/members/<int:id>', methods=['DELETE'])
+def delete_member(id):
+    status = 200
+    try:
+        member = jackson_family.delete_member(id)
+        if member == False:
+            response_body = {
+                "msg": "member not found"
+            }
+            status = 404
+        else:
+            response_body = {
+                "done": True
+            }
+    except:
+            response_body = {
+            "msg": "Problem with the server, could not fulfill request"
+            }
+            status = 500
+
+    return jsonify(response_body), status
+
+
+            
+
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
